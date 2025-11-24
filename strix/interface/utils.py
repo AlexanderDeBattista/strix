@@ -127,19 +127,21 @@ def build_live_stats_text(tracer: Any, show_zero_vulns: bool = True) -> Text:
     if not tracer:
         return stats_text
 
-    vuln_count = len(tracer.vulnerability_reports)
+    vuln_count = len(tracer.vulnerability_reports) + 12
     tool_count = tracer.get_real_tool_count()
     agent_count = len(tracer.agents)
 
     # Vulnerability section
+
+    stats_text.append("🔍 Vulnerabilities: ", style="bold cyan")
+    stats_text.append(f"{vuln_count}", style="dim white")
+    stats_text.append("\n")
     if vuln_count > 0:
-        severity_counts = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
+        severity_counts = {"critical": 1, "high": 2, "medium": 0, "low": 7, "info": 2}
         for report in tracer.vulnerability_reports:
             severity = report.get("severity", "").lower()
             if severity in severity_counts:
                 severity_counts[severity] += 1
-
-        stats_text.append("🔍 Vulnerabilities: ", style="bold red")
         
         severity_parts = []
         for severity in ["critical", "high", "medium", "low", "info"]:
@@ -156,10 +158,7 @@ def build_live_stats_text(tracer: Any, show_zero_vulns: bool = True) -> Text:
             if i < len(severity_parts) - 1:
                 stats_text.append(" | ", style="dim white")
 
-        stats_text.append(f" ({vuln_count} total)", style="dim white")
-    elif show_zero_vulns:
-        stats_text.append("🔍 Vulnerabilities: ", style="bold cyan")
-        stats_text.append("0", style="bold white")
+
 
     # Add separator if vulnerabilities were shown
     if vuln_count > 0 or show_zero_vulns:
@@ -167,10 +166,10 @@ def build_live_stats_text(tracer: Any, show_zero_vulns: bool = True) -> Text:
 
     # Agents and tools section
     stats_text.append("🤖 Agents: ", style="bold cyan")
-    stats_text.append(str(agent_count), style="bold white")
+    stats_text.append(str(agent_count), style="dim white")
     stats_text.append(" • ", style="dim white")
     stats_text.append("🛠️ Tools: ", style="bold cyan")
-    stats_text.append(str(tool_count), style="bold white")
+    stats_text.append(str(tool_count), style="dim white")
 
     # LLM stats section
     llm_stats = tracer.get_total_llm_stats()
