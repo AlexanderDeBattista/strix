@@ -78,7 +78,6 @@ def build_stats_text(tracer: Any) -> Text:
     else:
         stats_text.append("🔍 Vulnerabilities Found: ", style="bold green")
         stats_text.append("0", style="bold white")
-        stats_text.append(" (No exploitable vulnerabilities detected)", style="dim green")
         stats_text.append("\n")
 
     stats_text.append("🤖 Agents Used: ", style="bold cyan")
