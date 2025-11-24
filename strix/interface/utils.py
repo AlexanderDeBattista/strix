@@ -127,7 +127,7 @@ def build_live_stats_text(tracer: Any, show_zero_vulns: bool = True) -> Text:
     if not tracer:
         return stats_text
 
-    vuln_count = len(tracer.vulnerability_reports) + 12
+    vuln_count = len(tracer.vulnerability_reports)
     tool_count = tracer.get_real_tool_count()
     agent_count = len(tracer.agents)
 
@@ -137,7 +137,7 @@ def build_live_stats_text(tracer: Any, show_zero_vulns: bool = True) -> Text:
     stats_text.append(f"{vuln_count}", style="dim white")
     stats_text.append("\n")
     if vuln_count > 0:
-        severity_counts = {"critical": 1, "high": 2, "medium": 0, "low": 7, "info": 2}
+        severity_counts = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
         for report in tracer.vulnerability_reports:
             severity = report.get("severity", "").lower()
             if severity in severity_counts:
