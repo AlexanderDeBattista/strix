@@ -103,8 +103,8 @@ def build_final_stats_text(tracer: Any) -> Text:
             stats_text.append(format_token_count(total_stats["cached_tokens"]), style="bold white")
 
         stats_text.append(" • ", style="dim white")
-        stats_text.append("📤 Output: ", style="bold cyan")
-        stats_text.append(format_token_count(total_stats["output_tokens"]), style="bold green")
+        stats_text.append("📤 Output Tokens: ", style="bold cyan")
+        stats_text.append(format_token_count(total_stats["output_tokens"]), style="bold white")
 
         if total_stats["cost"] > 0:
             stats_text.append(" • ", style="dim white")
@@ -157,7 +157,7 @@ def build_live_stats_text(tracer: Any, show_zero_vulns: bool = True) -> Text:
             stats_text.append(part)
             if i < len(severity_parts) - 1:
                 stats_text.append(" | ", style="dim white")
-                
+
         stats_text.append("\n")
 
     # Agents and tools section
