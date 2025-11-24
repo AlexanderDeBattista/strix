@@ -181,7 +181,8 @@ def build_live_stats_text(tracer: Any, show_zero_vulns: bool = True) -> Text:
     stats_text.append(format_token_count(total_stats["input_tokens"]), style="dim white")
     
     stats_text.append(" • ", style="dim white")
-    stats_text.append("⚡ Cached: ", style="bold cyan")
+    stats_text.append("⚡ ", style="bold green")
+    stats_text.append("Cached: ", style="bold cyan")
     stats_text.append(format_token_count(total_stats["cached_tokens"]), style="dim white")
     
     stats_text.append("\n")
