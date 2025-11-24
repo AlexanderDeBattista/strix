@@ -31,7 +31,7 @@ from textual.widgets import Button, Label, Static, TextArea, Tree
 from textual.widgets.tree import TreeNode
 
 from strix.agents.StrixAgent import StrixAgent
-from strix.interface.utils import build_llm_stats_text, build_stats_text
+from strix.interface.utils import build_final_stats_text, build_live_stats_text
 from strix.llm.config import LLMConfig
 from strix.telemetry.tracer import Tracer, set_global_tracer
 
@@ -679,22 +679,10 @@ class StrixTUIApp(App):  # type: ignore[misc]
         # Build stats content
         stats_content = Text()
         
-        # Add vulnerability and tool stats
-        stats_text = build_stats_text(self.tracer)
+        # Add comprehensive live stats (vulnerabilities, agents, tools, and LLM usage)
+        stats_text = build_live_stats_text(self.tracer)
         if stats_text:
             stats_content.append(stats_text)
-            stats_content.append("\n\n")
-        
-        # Add LLM usage stats
-        llm_stats_text = build_llm_stats_text(self.tracer)
-        if llm_stats_text:
-            stats_content.append("💰 ", style="bold cyan")
-            stats_content.append("Usage Stats\n", style="bold cyan")
-            stats_content.append(llm_stats_text)
-        else:
-            stats_content.append("💰 ", style="bold cyan")
-            stats_content.append("Usage Stats\n", style="bold cyan")
-            stats_content.append("Cost: $0.0000 • Tokens: 0", style="dim white")
 
         # Create panel with stats
         from rich.panel import Panel

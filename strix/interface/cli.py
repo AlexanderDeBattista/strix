@@ -14,7 +14,7 @@ from strix.agents.StrixAgent import StrixAgent
 from strix.llm.config import LLMConfig
 from strix.telemetry.tracer import Tracer, set_global_tracer
 
-from .utils import build_llm_stats_text, build_stats_text, get_severity_color
+from .utils import build_final_stats_text, build_live_stats_text, get_severity_color
 
 
 async def run_cli(args: Any) -> None:  # noqa: PLR0915
@@ -139,18 +139,10 @@ async def run_cli(args: Any) -> None:  # noqa: PLR0915
         status_text.append("Running penetration test...", style="bold cyan")
         status_text.append("\n\n")
         
-        # Add current stats
-        stats_text = build_stats_text(tracer)
+        # Add current stats (includes vulnerabilities, agents, tools, and LLM usage)
+        stats_text = build_live_stats_text(tracer)
         if stats_text:
             status_text.append(stats_text)
-            status_text.append("\n")
-        
-        # Add LLM usage stats
-        llm_stats_text = build_llm_stats_text(tracer)
-        if llm_stats_text:
-            status_text.append(llm_stats_text)
-        else:
-            status_text.append("💰 Cost: $0.0000 • 📊 Tokens: 0", style="dim white")
         
         return Panel(
             status_text,
@@ -207,16 +199,10 @@ async def run_cli(args: Any) -> None:  # noqa: PLR0915
     final_stats_text.append("PENETRATION TEST COMPLETED", style="bold green")
     final_stats_text.append("\n\n")
     
-    # Add final vulnerability and tool stats
-    stats_text = build_stats_text(tracer)
+    # Add final vulnerability, tool, and LLM stats
+    stats_text = build_final_stats_text(tracer)
     if stats_text:
         final_stats_text.append(stats_text)
-        final_stats_text.append("\n")
-    
-    # Add final LLM usage stats
-    llm_stats_text = build_llm_stats_text(tracer)
-    if llm_stats_text:
-        final_stats_text.append(llm_stats_text)
 
     final_stats_panel = Panel(
         final_stats_text,

@@ -38,7 +38,8 @@ def get_severity_color(severity: str) -> str:
     return severity_colors.get(severity, "#6b7280")
 
 
-def build_stats_text(tracer: Any) -> Text:
+def build_final_stats_text(tracer: Any) -> Text:
+    """Build comprehensive stats text for final output with detailed messages and LLM usage."""
     stats_text = Text()
     if not tracer:
         return stats_text
@@ -78,6 +79,7 @@ def build_stats_text(tracer: Any) -> Text:
     else:
         stats_text.append("🔍 Vulnerabilities Found: ", style="bold green")
         stats_text.append("0", style="bold white")
+        stats_text.append(" (No exploitable vulnerabilities detected)", style="dim green")
         stats_text.append("\n")
 
     stats_text.append("🤖 Agents Used: ", style="bold cyan")
@@ -86,38 +88,114 @@ def build_stats_text(tracer: Any) -> Text:
     stats_text.append("🛠️ Tools Called: ", style="bold cyan")
     stats_text.append(str(tool_count), style="bold white")
 
-    return stats_text
-
-
-def build_llm_stats_text(tracer: Any) -> Text:
-    llm_stats_text = Text()
-    if not tracer:
-        return llm_stats_text
-
+    # Add LLM stats for final output
     llm_stats = tracer.get_total_llm_stats()
     total_stats = llm_stats["total"]
 
     if total_stats["requests"] > 0:
-        llm_stats_text.append("📥 Input Tokens: ", style="bold cyan")
-        llm_stats_text.append(format_token_count(total_stats["input_tokens"]), style="bold white")
+        stats_text.append("\n")
+        stats_text.append("📥 Input Tokens: ", style="bold cyan")
+        stats_text.append(format_token_count(total_stats["input_tokens"]), style="bold white")
 
         if total_stats["cached_tokens"] > 0:
-            llm_stats_text.append(" • ", style="dim white")
-            llm_stats_text.append("⚡ Cached: ", style="bold green")
-            llm_stats_text.append(
-                format_token_count(total_stats["cached_tokens"]), style="bold green"
-            )
+            stats_text.append(" • ", style="dim white")
+            stats_text.append("⚡ Cached Tokens: ", style="bold green")
+            stats_text.append(format_token_count(total_stats["cached_tokens"]), style="bold white")
 
-        llm_stats_text.append(" • ", style="dim white")
-        llm_stats_text.append("📤 Output Tokens: ", style="bold cyan")
-        llm_stats_text.append(format_token_count(total_stats["output_tokens"]), style="bold white")
+        stats_text.append(" • ", style="dim white")
+        stats_text.append("📤 Output: ", style="bold cyan")
+        stats_text.append(format_token_count(total_stats["output_tokens"]), style="bold green")
 
         if total_stats["cost"] > 0:
-            llm_stats_text.append(" • ", style="dim white")
-            llm_stats_text.append("💰 Total Cost: $", style="bold cyan")
-            llm_stats_text.append(f"{total_stats['cost']:.4f}", style="bold yellow")
+            stats_text.append(" • ", style="dim white")
+            stats_text.append("💰 Total Cost: ", style="bold cyan")
+            stats_text.append(f"${total_stats['cost']:.4f}", style="bold yellow")
+    else:
+        stats_text.append("\n")
+        stats_text.append("💰 Total Cost: ", style="bold cyan")
+        stats_text.append("$0.0000 ", style="bold yellow")
+        stats_text.append("• ", style="bold white")
+        stats_text.append("📊 Tokens: ", style="bold cyan")
+        stats_text.append("0", style="bold white")
 
-    return llm_stats_text
+    return stats_text
+
+
+def build_live_stats_text(tracer: Any, show_zero_vulns: bool = True) -> Text:
+    """Build comprehensive live stats text including vulnerabilities, agents, tools, and LLM usage."""
+    stats_text = Text()
+    if not tracer:
+        return stats_text
+
+    vuln_count = len(tracer.vulnerability_reports)
+    tool_count = tracer.get_real_tool_count()
+    agent_count = len(tracer.agents)
+
+    # Vulnerability section
+    if vuln_count > 0:
+        severity_counts = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
+        for report in tracer.vulnerability_reports:
+            severity = report.get("severity", "").lower()
+            if severity in severity_counts:
+                severity_counts[severity] += 1
+
+        stats_text.append("🔍 Vulnerabilities: ", style="bold red")
+        
+        severity_parts = []
+        for severity in ["critical", "high", "medium", "low", "info"]:
+            count = severity_counts[severity]
+            if count > 0:
+                severity_color = get_severity_color(severity)
+                severity_text = Text()
+                severity_text.append(f"{severity.upper()}: ", style=severity_color)
+                severity_text.append(str(count), style=f"bold {severity_color}")
+                severity_parts.append(severity_text)
+
+        for i, part in enumerate(severity_parts):
+            stats_text.append(part)
+            if i < len(severity_parts) - 1:
+                stats_text.append(" | ", style="dim white")
+
+        stats_text.append(f" ({vuln_count} total)", style="dim white")
+    elif show_zero_vulns:
+        stats_text.append("🔍 Vulnerabilities: ", style="bold cyan")
+        stats_text.append("0", style="bold white")
+
+    # Add separator if vulnerabilities were shown
+    if vuln_count > 0 or show_zero_vulns:
+        stats_text.append("\n")
+
+    # Agents and tools section
+    stats_text.append("🤖 Agents: ", style="bold cyan")
+    stats_text.append(str(agent_count), style="bold white")
+    stats_text.append(" • ", style="dim white")
+    stats_text.append("🛠️ Tools: ", style="bold cyan")
+    stats_text.append(str(tool_count), style="bold white")
+
+    # LLM stats section
+    llm_stats = tracer.get_total_llm_stats()
+    total_stats = llm_stats["total"]
+
+    stats_text.append("\n")
+    
+    stats_text.append("📥 Input: ", style="bold cyan")
+    stats_text.append(format_token_count(total_stats["input_tokens"]), style="dim white")
+    
+    stats_text.append(" • ", style="dim white")
+    stats_text.append("⚡", style="bold green")
+    stats_text.append("Cached: ", style="bold cyan")
+    stats_text.append(format_token_count(total_stats["cached_tokens"]), style="dim white")
+    
+    stats_text.append("\n")
+    
+    stats_text.append("📤 Output: ", style="bold cyan")
+    stats_text.append(format_token_count(total_stats["output_tokens"]), style="dim white")
+
+    stats_text.append(" • ", style="dim white")
+    stats_text.append("💰 Cost: ", style="bold cyan")
+    stats_text.append(f"${total_stats['cost']:.4f}", style="dim white")
+
+    return stats_text
 
 
 # Name generation utilities
