@@ -1,9 +1,12 @@
 import atexit
 import signal
 import sys
+import threading
+import time
 from typing import Any
 
 from rich.console import Console
+from rich.live import Live
 from rich.panel import Panel
 from rich.text import Text
 
@@ -11,7 +14,7 @@ from strix.agents.StrixAgent import StrixAgent
 from strix.llm.config import LLMConfig
 from strix.telemetry.tracer import Tracer, set_global_tracer
 
-from .utils import get_severity_color
+from .utils import build_llm_stats_text, build_stats_text, get_severity_color
 
 
 async def run_cli(args: Any) -> None:  # noqa: PLR0915
@@ -130,23 +133,99 @@ async def run_cli(args: Any) -> None:  # noqa: PLR0915
 
     set_global_tracer(tracer)
 
+    def create_live_status() -> Panel:
+        status_text = Text()
+        status_text.append("🦉 ", style="bold white")
+        status_text.append("Running penetration test...", style="bold cyan")
+        status_text.append("\n\n")
+        
+        # Add current stats
+        stats_text = build_stats_text(tracer)
+        if stats_text:
+            status_text.append(stats_text)
+            status_text.append("\n")
+        
+        # Add LLM usage stats
+        llm_stats_text = build_llm_stats_text(tracer)
+        if llm_stats_text:
+            status_text.append(llm_stats_text)
+        else:
+            status_text.append("💰 Cost: $0.0000 • 📊 Tokens: 0", style="dim white")
+        
+        return Panel(
+            status_text,
+            title="[bold cyan]🔍 Live Penetration Test Status",
+            title_align="center",
+            border_style="cyan",
+            padding=(1, 2),
+        )
+
     try:
         console.print()
-        with console.status("[bold cyan]Running penetration test...", spinner="dots") as status:
-            agent = StrixAgent(agent_config)
-            result = await agent.execute_scan(scan_config)
-            status.stop()
-
-            if isinstance(result, dict) and not result.get("success", True):
-                error_msg = result.get("error", "Unknown error")
-                console.print()
-                console.print(f"[bold red]❌ Penetration test failed:[/] {error_msg}")
-                console.print()
-                sys.exit(1)
+        
+        # Start with initial status panel
+        with Live(create_live_status(), console=console, refresh_per_second=2, transient=False) as live:
+            # Flag to control the update thread
+            stop_updates = threading.Event()
+            
+            # Update function to refresh the display
+            def update_status():
+                while not stop_updates.is_set():
+                    try:
+                        live.update(create_live_status())
+                        time.sleep(2)
+                    except Exception:
+                        break
+            
+            # Start background thread for updates
+            update_thread = threading.Thread(target=update_status, daemon=True)
+            update_thread.start()
+            
+            try:
+                agent = StrixAgent(agent_config)
+                result = await agent.execute_scan(scan_config)
+                
+                if isinstance(result, dict) and not result.get("success", True):
+                    error_msg = result.get("error", "Unknown error")
+                    console.print()
+                    console.print(f"[bold red]❌ Penetration test failed:[/] {error_msg}")
+                    console.print()
+                    sys.exit(1)
+            finally:
+                # Stop the update thread
+                stop_updates.set()
+                update_thread.join(timeout=1)
 
     except Exception as e:
         console.print(f"[bold red]Error during penetration test:[/] {e}")
         raise
+
+    # Display final statistics
+    console.print()
+    final_stats_text = Text()
+    final_stats_text.append("📊 ", style="bold cyan")
+    final_stats_text.append("PENETRATION TEST COMPLETED", style="bold green")
+    final_stats_text.append("\n\n")
+    
+    # Add final vulnerability and tool stats
+    stats_text = build_stats_text(tracer)
+    if stats_text:
+        final_stats_text.append(stats_text)
+        final_stats_text.append("\n")
+    
+    # Add final LLM usage stats
+    llm_stats_text = build_llm_stats_text(tracer)
+    if llm_stats_text:
+        final_stats_text.append(llm_stats_text)
+
+    final_stats_panel = Panel(
+        final_stats_text,
+        title="[bold green]✅ Final Statistics",
+        title_align="center",
+        border_style="green",
+        padding=(1, 2),
+    )
+    console.print(final_stats_panel)
 
     if tracer.final_scan_result:
         console.print()
