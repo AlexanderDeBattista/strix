@@ -157,11 +157,7 @@ def build_live_stats_text(tracer: Any, show_zero_vulns: bool = True) -> Text:
             stats_text.append(part)
             if i < len(severity_parts) - 1:
                 stats_text.append(" | ", style="dim white")
-
-
-
-    # Add separator if vulnerabilities were shown
-    if vuln_count > 0 or show_zero_vulns:
+                
         stats_text.append("\n")
 
     # Agents and tools section
