@@ -138,12 +138,12 @@ async def run_cli(args: Any) -> None:  # noqa: PLR0915
         status_text.append("🦉 ", style="bold white")
         status_text.append("Running penetration test...", style="bold cyan")
         status_text.append("\n\n")
-        
+
         # Add current stats (includes vulnerabilities, agents, tools, and LLM usage)
         stats_text = build_live_stats_text(tracer)
         if stats_text:
             status_text.append(stats_text)
-        
+
         return Panel(
             status_text,
             title="[bold cyan]🔍 Live Penetration Test Status",
@@ -154,12 +154,14 @@ async def run_cli(args: Any) -> None:  # noqa: PLR0915
 
     try:
         console.print()
-        
+
         # Start with initial status panel
-        with Live(create_live_status(), console=console, refresh_per_second=2, transient=False) as live:
+        with Live(
+            create_live_status(), console=console, refresh_per_second=2, transient=False
+        ) as live:
             # Flag to control the update thread
             stop_updates = threading.Event()
-            
+
             # Update function to refresh the display
             def update_status():
                 while not stop_updates.is_set():
@@ -168,15 +170,15 @@ async def run_cli(args: Any) -> None:  # noqa: PLR0915
                         time.sleep(2)
                     except Exception:
                         break
-            
+
             # Start background thread for updates
             update_thread = threading.Thread(target=update_status, daemon=True)
             update_thread.start()
-            
+
             try:
                 agent = StrixAgent(agent_config)
                 result = await agent.execute_scan(scan_config)
-                
+
                 if isinstance(result, dict) and not result.get("success", True):
                     error_msg = result.get("error", "Unknown error")
                     console.print()
@@ -198,7 +200,7 @@ async def run_cli(args: Any) -> None:  # noqa: PLR0915
     final_stats_text.append("📊 ", style="bold cyan")
     final_stats_text.append("PENETRATION TEST COMPLETED", style="bold green")
     final_stats_text.append("\n\n")
-    
+
     # Add final vulnerability, tool, and LLM stats
     stats_text = build_final_stats_text(tracer)
     if stats_text:

@@ -31,7 +31,7 @@ from textual.widgets import Button, Label, Static, TextArea, Tree
 from textual.widgets.tree import TreeNode
 
 from strix.agents.StrixAgent import StrixAgent
-from strix.interface.utils import build_final_stats_text, build_live_stats_text
+from strix.interface.utils import build_live_stats_text
 from strix.llm.config import LLMConfig
 from strix.telemetry.tracer import Tracer, set_global_tracer
 
@@ -487,7 +487,7 @@ class StrixTUIApp(App):  # type: ignore[misc]
         self._update_chat_view()
 
         self._update_agent_status_display()
-        
+
         self._update_stats_display()
 
     def _update_agent_node(self, agent_id: str, agent_data: dict[str, Any]) -> bool:
@@ -678,7 +678,7 @@ class StrixTUIApp(App):  # type: ignore[misc]
 
         # Build stats content
         stats_content = Text()
-        
+
         # Add comprehensive live stats (vulnerabilities, agents, tools, and LLM usage)
         stats_text = build_live_stats_text(self.tracer)
         if stats_text:
@@ -686,6 +686,7 @@ class StrixTUIApp(App):  # type: ignore[misc]
 
         # Create panel with stats
         from rich.panel import Panel
+
         stats_panel = Panel(
             stats_content,
             title="📊 Live Stats",

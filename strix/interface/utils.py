@@ -142,7 +142,7 @@ def build_live_stats_text(tracer: Any, show_zero_vulns: bool = True) -> Text:
             severity = report.get("severity", "").lower()
             if severity in severity_counts:
                 severity_counts[severity] += 1
-        
+
         severity_parts = []
         for severity in ["critical", "high", "medium", "low", "info"]:
             count = severity_counts[severity]
@@ -172,17 +172,17 @@ def build_live_stats_text(tracer: Any, show_zero_vulns: bool = True) -> Text:
     total_stats = llm_stats["total"]
 
     stats_text.append("\n")
-    
+
     stats_text.append("📥 Input: ", style="bold cyan")
     stats_text.append(format_token_count(total_stats["input_tokens"]), style="dim white")
-    
+
     stats_text.append(" • ", style="dim white")
     stats_text.append("⚡ ", style="bold green")
     stats_text.append("Cached: ", style="bold cyan")
     stats_text.append(format_token_count(total_stats["cached_tokens"]), style="dim white")
-    
+
     stats_text.append("\n")
-    
+
     stats_text.append("📤 Output: ", style="bold cyan")
     stats_text.append(format_token_count(total_stats["output_tokens"]), style="dim white")
 
