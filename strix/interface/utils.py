@@ -38,15 +38,9 @@ def get_severity_color(severity: str) -> str:
     return severity_colors.get(severity, "#6b7280")
 
 
-def build_final_stats_text(tracer: Any) -> Text:
-    """Build comprehensive stats text for final output with detailed messages and LLM usage."""
-    stats_text = Text()
-    if not tracer:
-        return stats_text
-
+def _build_vulnerability_stats(stats_text: Text, tracer: Any) -> None:
+    """Build vulnerability section of stats text."""
     vuln_count = len(tracer.vulnerability_reports)
-    tool_count = tracer.get_real_tool_count()
-    agent_count = len(tracer.agents)
 
     if vuln_count > 0:
         severity_counts = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
@@ -82,15 +76,9 @@ def build_final_stats_text(tracer: Any) -> Text:
         stats_text.append(" (No exploitable vulnerabilities detected)", style="dim green")
         stats_text.append("\n")
 
-    stats_text.append("🤖 Agents Used: ", style="bold cyan")
-    stats_text.append(str(agent_count), style="bold white")
-    stats_text.append(" • ", style="dim white")
-    stats_text.append("🛠️ Tools Called: ", style="bold cyan")
-    stats_text.append(str(tool_count), style="bold white")
 
-    llm_stats = tracer.get_total_llm_stats()
-    total_stats = llm_stats["total"]
-
+def _build_llm_stats(stats_text: Text, total_stats: dict[str, Any]) -> None:
+    """Build LLM usage section of stats text."""
     if total_stats["requests"] > 0:
         stats_text.append("\n")
         stats_text.append("📥 Input Tokens: ", style="bold cyan")
@@ -117,11 +105,31 @@ def build_final_stats_text(tracer: Any) -> Text:
         stats_text.append("📊 Tokens: ", style="bold cyan")
         stats_text.append("0", style="bold white")
 
+
+def build_final_stats_text(tracer: Any) -> Text:
+    """Build stats text for final output with detailed messages and LLM usage."""
+    stats_text = Text()
+    if not tracer:
+        return stats_text
+
+    _build_vulnerability_stats(stats_text, tracer)
+
+    tool_count = tracer.get_real_tool_count()
+    agent_count = len(tracer.agents)
+
+    stats_text.append("🤖 Agents Used: ", style="bold cyan")
+    stats_text.append(str(agent_count), style="bold white")
+    stats_text.append(" • ", style="dim white")
+    stats_text.append("🛠️ Tools Called: ", style="bold cyan")
+    stats_text.append(str(tool_count), style="bold white")
+
+    llm_stats = tracer.get_total_llm_stats()
+    _build_llm_stats(stats_text, llm_stats["total"])
+
     return stats_text
 
 
-def build_live_stats_text(tracer: Any, show_zero_vulns: bool = True) -> Text:
-    """Build comprehensive live stats text including vulnerabilities, agents, tools, and LLM usage."""
+def build_live_stats_text(tracer: Any) -> Text:
     stats_text = Text()
     if not tracer:
         return stats_text

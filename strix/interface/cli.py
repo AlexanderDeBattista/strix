@@ -159,12 +159,12 @@ async def run_cli(args: Any) -> None:  # noqa: PLR0915
         ) as live:
             stop_updates = threading.Event()
 
-            def update_status():
+            def update_status() -> None:
                 while not stop_updates.is_set():
                     try:
                         live.update(create_live_status())
                         time.sleep(2)
-                    except Exception:
+                    except Exception:  # noqa: BLE001
                         break
 
             update_thread = threading.Thread(target=update_status, daemon=True)
