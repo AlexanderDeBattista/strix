@@ -394,10 +394,8 @@ class StrixTUIApp(App):  # type: ignore[misc]
             agents_tree.guide_depth = 3
             agents_tree.guide_style = "dashed"
 
-            # Stats display area
             stats_display = Static("", id="stats_display")
 
-            # Right sidebar with agents tree and stats
             sidebar = Vertical(agents_tree, stats_display, id="sidebar")
 
             content_container.mount(chat_area_container)
@@ -676,22 +674,19 @@ class StrixTUIApp(App):  # type: ignore[misc]
         if not self._is_widget_safe(stats_display):
             return
 
-        # Build stats content
         stats_content = Text()
 
-        # Add comprehensive live stats (vulnerabilities, agents, tools, and LLM usage)
         stats_text = build_live_stats_text(self.tracer)
         if stats_text:
             stats_content.append(stats_text)
 
-        # Create panel with stats
         from rich.panel import Panel
 
         stats_panel = Panel(
             stats_content,
             title="📊 Live Stats",
             title_align="left",
-            border_style="cyan",
+            border_style="#22c55e",
             padding=(0, 1),
         )
 

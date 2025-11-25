@@ -136,33 +136,29 @@ async def run_cli(args: Any) -> None:  # noqa: PLR0915
     def create_live_status() -> Panel:
         status_text = Text()
         status_text.append("🦉 ", style="bold white")
-        status_text.append("Running penetration test...", style="bold cyan")
+        status_text.append("Running penetration test...", style="bold #22c55e")
         status_text.append("\n\n")
 
-        # Add current stats (includes vulnerabilities, agents, tools, and LLM usage)
         stats_text = build_live_stats_text(tracer)
         if stats_text:
             status_text.append(stats_text)
 
         return Panel(
             status_text,
-            title="[bold cyan]🔍 Live Penetration Test Status",
+            title="[bold #22c55e]🔍 Live Penetration Test Status",
             title_align="center",
-            border_style="cyan",
+            border_style="#22c55e",
             padding=(1, 2),
         )
 
     try:
         console.print()
 
-        # Start with initial status panel
         with Live(
             create_live_status(), console=console, refresh_per_second=2, transient=False
         ) as live:
-            # Flag to control the update thread
             stop_updates = threading.Event()
 
-            # Update function to refresh the display
             def update_status():
                 while not stop_updates.is_set():
                     try:
@@ -171,7 +167,6 @@ async def run_cli(args: Any) -> None:  # noqa: PLR0915
                     except Exception:
                         break
 
-            # Start background thread for updates
             update_thread = threading.Thread(target=update_status, daemon=True)
             update_thread.start()
 
@@ -186,7 +181,6 @@ async def run_cli(args: Any) -> None:  # noqa: PLR0915
                     console.print()
                     sys.exit(1)
             finally:
-                # Stop the update thread
                 stop_updates.set()
                 update_thread.join(timeout=1)
 
@@ -194,14 +188,12 @@ async def run_cli(args: Any) -> None:  # noqa: PLR0915
         console.print(f"[bold red]Error during penetration test:[/] {e}")
         raise
 
-    # Display final statistics
     console.print()
     final_stats_text = Text()
     final_stats_text.append("📊 ", style="bold cyan")
     final_stats_text.append("PENETRATION TEST COMPLETED", style="bold green")
     final_stats_text.append("\n\n")
 
-    # Add final vulnerability, tool, and LLM stats
     stats_text = build_final_stats_text(tracer)
     if stats_text:
         final_stats_text.append(stats_text)

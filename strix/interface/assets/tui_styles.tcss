@@ -46,7 +46,7 @@ Screen {
     border-title-color: #a8a29e;
     border-title-style: bold;
     padding: 1;
-    margin-bottom: 1;
+    margin-bottom: 0;
 }
 
 #stats_display {

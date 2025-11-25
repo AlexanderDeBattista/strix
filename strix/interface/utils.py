@@ -88,7 +88,6 @@ def build_final_stats_text(tracer: Any) -> Text:
     stats_text.append("🛠️ Tools Called: ", style="bold cyan")
     stats_text.append(str(tool_count), style="bold white")
 
-    # Add LLM stats for final output
     llm_stats = tracer.get_total_llm_stats()
     total_stats = llm_stats["total"]
 
@@ -131,9 +130,7 @@ def build_live_stats_text(tracer: Any, show_zero_vulns: bool = True) -> Text:
     tool_count = tracer.get_real_tool_count()
     agent_count = len(tracer.agents)
 
-    # Vulnerability section
-
-    stats_text.append("🔍 Vulnerabilities: ", style="bold cyan")
+    stats_text.append("🔍 Vulnerabilities: ", style="bold white")
     stats_text.append(f"{vuln_count}", style="dim white")
     stats_text.append("\n")
     if vuln_count > 0:
@@ -160,34 +157,32 @@ def build_live_stats_text(tracer: Any, show_zero_vulns: bool = True) -> Text:
 
         stats_text.append("\n")
 
-    # Agents and tools section
-    stats_text.append("🤖 Agents: ", style="bold cyan")
+    stats_text.append("🤖 Agents: ", style="bold white")
     stats_text.append(str(agent_count), style="dim white")
     stats_text.append(" • ", style="dim white")
-    stats_text.append("🛠️ Tools: ", style="bold cyan")
+    stats_text.append("🛠️ Tools: ", style="bold white")
     stats_text.append(str(tool_count), style="dim white")
 
-    # LLM stats section
     llm_stats = tracer.get_total_llm_stats()
     total_stats = llm_stats["total"]
 
     stats_text.append("\n")
 
-    stats_text.append("📥 Input: ", style="bold cyan")
+    stats_text.append("📥 Input: ", style="bold white")
     stats_text.append(format_token_count(total_stats["input_tokens"]), style="dim white")
 
     stats_text.append(" • ", style="dim white")
-    stats_text.append("⚡ ", style="bold green")
-    stats_text.append("Cached: ", style="bold cyan")
+    stats_text.append("⚡ ", style="bold white")
+    stats_text.append("Cached: ", style="bold white")
     stats_text.append(format_token_count(total_stats["cached_tokens"]), style="dim white")
 
     stats_text.append("\n")
 
-    stats_text.append("📤 Output: ", style="bold cyan")
+    stats_text.append("📤 Output: ", style="bold white")
     stats_text.append(format_token_count(total_stats["output_tokens"]), style="dim white")
 
     stats_text.append(" • ", style="dim white")
-    stats_text.append("💰 Cost: ", style="bold cyan")
+    stats_text.append("💰 Cost: ", style="bold white")
     stats_text.append(f"${total_stats['cost']:.4f}", style="dim white")
 
     return stats_text
